@@ -1,0 +1,24 @@
+# Fichiers sensibles
+.env
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+venv/
+env/
+
+# Docker
+*.env
+docker-compose.override.yml
+
+# Modèles de données volumineux
+models/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
