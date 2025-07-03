@@ -17,7 +17,10 @@ env/
 docker-compose.override.yml
 
 # Modèles de données volumineux
-models/
+#models/
+
+# Clé SSH pour le déploiement
+melanoma-deploy-key
 
 # Fichiers système
 .DS_Store
