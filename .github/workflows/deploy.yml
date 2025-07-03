@@ -1,0 +1,111 @@
+name: 🚀 Déploiement du Détecteur de Mélanome
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - 'Notebook/**'
+      - 'data/**'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔍 Debug avant SSH
+      run: |
+        echo "💡 Début du déploiement du Détecteur de Mélanome"
+        echo "🏗️ Système d'exploitation:"
+        uname -a
+        echo "📂 Contenu du répertoire:"
+        ls -lah
+
+    - name: 🔑 Configuration SSH
+      run: |
+        set -x
+        echo "🔧 Configuration de l'environnement SSH..."
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        
+        # Configuration du known_hosts
+        ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
+        
+        # Test de connexion
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.AWS_HOST }} "echo '✅ Connexion SSH réussie'"
+
+    - name: 🗑️ Nettoyage du répertoire distant
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.AWS_HOST }} "
+          echo '🧹 Nettoyage du répertoire de déploiement...'
+          sudo rm -rf /home/ubuntu/melanoma-detection/*
+        "
+
+    - name: 📂 Transfert des fichiers
+      run: |
+        echo "🚀 Début du transfert des fichiers vers AWS..."
+        rsync -avz \
+          --exclude='.git' \
+          --exclude='.github' \
+          --exclude='.gitignore' \
+          --exclude='.env' \
+          --exclude='__pycache__' \
+          --exclude='*.pyc' \
+          -e "ssh -i ~/.ssh/id_rsa" \
+          . ubuntu@${{ secrets.AWS_HOST }}:/home/ubuntu/melanoma-detection
+        echo "✅ Transfert terminé !"
+
+    - name: 🚀 Déploiement sur AWS
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.AWS_HOST }} << 'EOF'
+        set -e
+        echo "🔄 Mise à jour du système..."
+        sudo apt update -y
+
+        # Installation de Docker
+        if ! command -v docker &> /dev/null; then
+            echo "🐳 Installation de Docker..."
+            sudo apt install -y docker.io
+            sudo systemctl enable docker
+            sudo systemctl start docker
+        fi
+
+        # Installation de Docker Compose
+        if ! command -v docker-compose &> /dev/null; then
+            echo "📦 Installation de Docker Compose..."
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+        fi
+
+        # Configuration des permissions
+        sudo usermod -aG docker ubuntu
+        newgrp docker
+
+        # Déploiement
+        echo "🚀 Démarrage du déploiement..."
+        cd /home/ubuntu/melanoma-detection
+        
+        # Arrêt des conteneurs existants
+        docker-compose down || true
+        
+        # Nettoyage des ressources Docker inutilisées
+        docker system prune -f
+        
+        # Démarrage des services
+        docker-compose up --build -d
+        
+        # Vérification des conteneurs
+        echo "📊 État des conteneurs :"
+        docker ps -a
+        echo "✅ Déploiement terminé !"
+        EOF
+
+    - name: 🧹 Nettoyage
+      run: |
+        echo "🧹 Nettoyage des clés SSH..."
+        rm -rf ~/.ssh
+        echo "✅ Nettoyage terminé !"
