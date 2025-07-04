@@ -8,6 +8,8 @@ on:
       - 'README.md'
       - 'Notebook/**'
       - 'data/**'
+      - 'images_test/**'
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
