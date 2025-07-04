@@ -20,7 +20,10 @@ docker-compose.override.yml
 #models/
 
 # Clé SSH pour le déploiement
-melanoma-deploy-key
+github-actions-key.txt
+
+# Clé SSH pour le déploiement
+melanoma-key.pem
 
 # Fichiers système
 .DS_Store
