@@ -70,9 +70,9 @@ Projet-Deep-Learning/
 ### Installation
 ```bash
 # Cloner le dépôt
-git clone [https://github.com/votre-utilisateur/Deep-Learning-Detection-Melanome.git](https://github.com/votre-utilisateur/Deep-Learning-Detection-Melanome.git)
-cd Deep-Learning-Detection-Melanome
-
+git clone [https://github.com/Ousmane-BA100/Deep-Learning-D-tection-de-M-lanome.git](https://github.com/Ousmane-BA100/Deep-Learning-D-tection-de-M-lanome.git)
+cd Deep-Learning-D-tection-de-M-lanome
+```
 # Lancer les services en localhost avec docker-compose
 docker-compose up --build
 
